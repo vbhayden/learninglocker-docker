@@ -1,0 +1,129 @@
+version: '3'
+services:
+
+    mongo:
+        image: mongo:4
+        restart: unless-stopped
+        volumes:
+            - ./data/mongo:/data/db
+        networks:
+            - public
+
+    redis:
+        image: redis:4-alpine
+        restart: unless-stopped
+        volumes:
+            - ./data/redis:/data
+        networks:
+            - public
+
+    xapi:
+        image: learninglocker/xapi-service:4.1.0
+        restart: unless-stopped
+        environment:
+            - MONGO_URL=mongodb://mongo:27017/learninglocker_v2
+            - MONGO_DB=learninglocker_v2
+            - REDIS_URL=redis://redis:6379/0
+        depends_on:
+            - mongo
+            - redis
+        volumes:
+            - ./data/xapi-storage:/usr/src/app/storage
+        networks:
+            - public
+
+    migration:
+        build:
+            context: .
+        command: "yarn migrate"
+        depends_on:
+            - mongo
+        volumes:
+            - ./data/app-storage:/opt/learninglocker/storage
+        networks:
+            - public
+            
+    api:
+        # image: michzimny/learninglocker2-app:${DOCKER_TAG}
+        build:
+            context: .
+        restart: unless-stopped
+        command: "node api/dist/server"
+        restart: unless-stopped
+        depends_on:
+            - mongo
+            - redis
+            - migration
+        volumes:
+            - ./data/app-storage:/opt/learninglocker/storage
+        networks:
+            - public
+
+    ui:
+        # image: michzimny/learninglocker2-app:${DOCKER_TAG}
+        build:
+            context: .
+        restart: unless-stopped
+        command: "node ui/dist/server"
+        depends_on:
+            - mongo
+            - redis
+            - migration
+            - api
+        volumes:
+            - ./data/app-storage:/opt/learninglocker/storage
+            - ./data/ui-logs:/opt/learninglocker/logs
+        networks:
+            - public
+
+    worker:
+        # image: michzimny/learninglocker2-app:${DOCKER_TAG}
+        build:
+            context: .
+        restart: unless-stopped
+        command: "node worker/dist/server"
+        depends_on:
+            - mongo
+            - migration
+            - redis
+        volumes:
+            - ./data/app-storage:/opt/learninglocker/storage
+        networks:
+            - public
+
+    nginx:
+        build: 
+            context: nginx
+            args:
+                - DOMAIN_NAME=${DOMAIN_NAME}
+        restart: unless-stopped
+        depends_on:
+            - ui
+            - xapi
+        ports:
+            - "443:443"
+            - "80:80"
+        volumes:
+            #- ./data/public:/volumed/opt/learninglocker/ui/dist/public
+            - ./nginx/letsencrypt:/usr/share/nginx/html
+            - "./certbot/etc/live/${DOMAIN_NAME}/privkey.pem:/root/ssl/privkey.pem:ro"
+            - "./certbot/etc/live/${DOMAIN_NAME}/fullchain.pem:/root/ssl/fullchain.pem:ro"
+        networks:
+            - public
+
+    certbot:
+        image: certbot/certbot
+        container_name: 'docker_certbot'
+        volumes:
+            - ./keys:/var/lib/letsencrypt
+            - ./nginx/letsencrypt:/data/letsencrypt
+            - ./certbot/etc:/etc/letsencrypt
+            - ./certbot/log:/var/log/letsencrypt
+        depends_on:
+            - nginx
+        networks:
+            - public
+            
+networks:
+    public: 
+        driver: bridge
