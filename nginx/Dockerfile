@@ -1,6 +1,6 @@
 FROM nginx:1.13
 
-ARG HOSTNAME
+ARG DOMAIN_NAME
 
 # Move our configuration into place
 #
