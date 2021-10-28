@@ -95,7 +95,7 @@ services:
         build: 
             context: nginx
             args:
-                - DOMAIN_NAME=${DOMAIN_NAME}
+              - DOMAIN_NAME=${DOMAIN_NAME}
         restart: unless-stopped
         depends_on:
             - ui
