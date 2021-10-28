@@ -20,7 +20,6 @@ sudo ./init-ssl.sh localhost
 
 then stand it up:
 ```
-sudo ./build-dev.sh
 sudo docker-compose up -d --build
 ```
 
