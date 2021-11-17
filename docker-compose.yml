@@ -104,10 +104,8 @@ services:
             - "443:443"
             - "80:80"
         volumes:
-            #- ./data/public:/volumed/opt/learninglocker/ui/dist/public
             - ./nginx/letsencrypt:/usr/share/nginx/html
-            - "./certbot/etc/live/${DOMAIN_NAME}/privkey.pem:/root/ssl/privkey.pem:ro"
-            - "./certbot/etc/live/${DOMAIN_NAME}/fullchain.pem:/root/ssl/fullchain.pem:ro"
+            - ./certbot/etc:/usr/share/keys
         networks:
             - public
 
