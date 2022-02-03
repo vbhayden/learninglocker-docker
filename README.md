@@ -13,7 +13,7 @@ cd ll2-docker
 
 get the Learning Locker repo:
 ```bash
-./clone.sh
+./clone-locker.sh
 ```
 
 copy the baseline settings:
