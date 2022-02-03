@@ -11,6 +11,11 @@ git clone https://github.com/vbhayden/learninglocker-docker ll2-docker
 cd ll2-docker
 ```
 
+get the Learning Locker repo:
+```bash
+./clone.sh
+```
+
 copy the baseline settings:
 ```bash
 cp .env.example .env
