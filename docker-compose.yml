@@ -5,7 +5,7 @@ services:
         image: mongo:4
         restart: unless-stopped
         volumes:
-            - ./data/mongo:/data/db
+            - mongo-data:/data/db
         networks:
             - public
 
@@ -13,7 +13,7 @@ services:
         image: redis:4-alpine
         restart: unless-stopped
         volumes:
-            - ./data/redis:/data
+            - redis-data:/data
         networks:
             - public
 
@@ -28,7 +28,7 @@ services:
             - mongo
             - redis
         volumes:
-            - ./data/xapi-storage:/usr/src/app/storage
+            - xapi-storage:/usr/src/app/storage
         networks:
             - public
 
@@ -39,7 +39,7 @@ services:
         depends_on:
             - mongo
         volumes:
-            - ./data/app-storage:/opt/learninglocker/storage
+            - app-storage:/opt/learninglocker/storage
         networks:
             - public
             
@@ -49,13 +49,12 @@ services:
             context: .
         restart: unless-stopped
         command: "node api/dist/server"
-        restart: unless-stopped
         depends_on:
             - mongo
             - redis
             - migration
         volumes:
-            - ./data/app-storage:/opt/learninglocker/storage
+            - app-storage:/opt/learninglocker/storage
         networks:
             - public
 
@@ -71,8 +70,8 @@ services:
             - migration
             - api
         volumes:
-            - ./data/app-storage:/opt/learninglocker/storage
-            - ./data/ui-logs:/opt/learninglocker/logs
+            - app-storage:/opt/learninglocker/storage
+            - ui-logs:/opt/learninglocker/logs
         networks:
             - public
 
@@ -87,7 +86,7 @@ services:
             - migration
             - redis
         volumes:
-            - ./data/app-storage:/opt/learninglocker/storage
+            - app-storage:/opt/learninglocker/storage
         networks:
             - public
 
@@ -113,15 +112,25 @@ services:
         image: certbot/certbot
         container_name: 'docker_certbot'
         volumes:
-            - ./keys:/var/lib/letsencrypt
+            - keys:/var/lib/letsencrypt
             - ./nginx/letsencrypt:/data/letsencrypt
             - ./certbot/etc:/etc/letsencrypt
-            - ./certbot/log:/var/log/letsencrypt
+            - certbot-log:/var/log/letsencrypt
         depends_on:
             - nginx
         networks:
             - public
-            
+
+volumes:
+    mongo-data:
+    redis-data:
+    app-storage:
+    ui-data:
+    ui-logs:
+    xapi-storage:
+    keys:
+    certbot-log:
+
 networks:
     public: 
         driver: bridge
